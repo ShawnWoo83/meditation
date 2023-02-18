@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-del$a)x@(m00mg9yy)igu9_8%sn84kth+9w_t0typkn5%0nl0^
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "47.101.156.29"
+    "47.101.156.29",
+    "127.0.0.1",
 ]
 
 # Application definition
@@ -108,11 +109,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
