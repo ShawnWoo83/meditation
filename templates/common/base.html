@@ -1,0 +1,43 @@
+{% load static %}
+
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/mask.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+{#<link rel="stylesheet" type="text/css" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">#}
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+    <script type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'scripts/base.js' %}"></script>
+    <script type="text/javascript" src="{% static 'scripts/dict.js' %}"></script>
+    <script type="text/javascript" src="{% static 'scripts/utils.js' %}"></script>
+    <title>
+        {% block title %}
+            Mindfulness
+        {% endblock %}
+    </title>
+</head>
+<body>
+<div id="div_mask" style="display: none">
+    {% block mask %}
+        <!--
+            这是一个遮罩层，默认不展示。
+            在需要时，可以通过:document.getElementById("div_mask").style.display = 'block' 将其展示。
+            div层内的内容可以由用户进行自定义。
+        -->
+    {% endblock %}
+</div>
+
+{% block content %}
+    content
+{% endblock %}
+
+{% block script %}
+{% endblock %}
+
+
+{% block interface %}
+{% endblock %}
+</body>
+</html>

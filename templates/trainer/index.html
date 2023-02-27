@@ -1,0 +1,35 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    教练首页
+{% endblock %}
+
+{% block content %}
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="logo" style="margin: 20px">
+    </div>
+    <div style="margin-top: 20px; border-top: 1px solid #DADADA">
+        <div class="menu">
+            <span onclick="jump('/direct/trainer/scheduleList')">查看课表</span>
+        </div>
+        <div class="menu">
+            <span onclick="jump('/direct/trainer/userList')">学员申请审批</span>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        function jump(url) {
+            window.location.href = url;
+        }
+    </script>
+{% endblock %}

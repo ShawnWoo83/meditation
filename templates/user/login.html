@@ -1,0 +1,83 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    用户登陆
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+    <div id="app">
+        <div class="logo_container">
+            <div class="logo">
+            </div>
+        </div>
+
+
+        <div class="login_container">
+            <div class="line">
+                <input placeholder="请输入账号" maxlength="11" id="login_id" value="13601760779">
+            </div>
+            <div class="line" style="margin-top: 5px">
+                <span id="tips_login_id" style="display:none;font-size: 12px; color: red; width: 100%;">异常提示</span>
+            </div>
+            <div class="line">
+                <input type="password" placeholder="请输入密码" id="login_pwd" value="111111">
+            </div>
+            <div class="line" style="margin-top: 5px">
+                <span id="tips_login_pwd" style="display:none;font-size: 12px; color: red; width: 100%;">异常提示</span>
+            </div>
+            <div class="line" style="margin-top: 1px">
+                <span class="register" onclick="window.location.href='/direct/user/register'">点击注册</span>
+            </div>
+
+            <div class="line">
+                <button class="login">登录</button>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        document.getElementsByClassName("login")[0].addEventListener("click", function () {
+            const login_id = document.getElementById("login_id").value;
+            const login_pwd = document.getElementById("login_pwd").value;
+            let tips_login_id = document.getElementById("tips_login_id");
+            let tips_login_pwd = document.getElementById("tips_login_pwd");
+
+            if (isNullOrEmpty(login_id)) {
+                tips_login_id.innerText = "账号不能为空";
+                tips_login_id.style.display = "block";
+                return false;
+            } else {
+                tips_login_id.style.display = "none";
+            }
+
+            if (isNullOrEmpty(login_pwd)) {
+                tips_login_pwd.innerText = "密码不能为空";
+                tips_login_pwd.style.display = "block";
+                return false;
+            } else {
+                tips_login_pwd.style.display = "none";
+            }
+
+            let req_data = {
+                "login_id": login_id,
+                "login_pwd": login_pwd,
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            };
+            call_ajax("login", req_data);
+        })
+
+        function login(res) {
+            if (res["status"] == "00") {
+                window.location.href = "/hello";
+            } else {
+                document.getElementById("tips_login_pwd").innerText = res["msg"];
+                document.getElementById("tips_login_pwd").style.display = "block";
+            }
+        }
+
+
+    </script>
+{% endblock %}

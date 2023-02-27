@@ -15,13 +15,37 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
-from django.conf.urls import handler404
-from . import views
+from meditation.views import common_views, user_views, trainee_views, trainer_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('hello/', views.hello),
+
+    # 首页
+    path('hello/', common_views.hello),
+
+    # 以下为特殊的调用，包括直接调用页面及ajax调用
+    path('direct/<path:url>', common_views.direct),
+
+    # 用户类路径
+    path('login/', user_views.login),
+    path('register/', user_views.register),
+    path('logout/', user_views.logout),
+
+    # 学员类路径
+    path('getTraineeScheduleList/', trainee_views.get_trainee_schedule_list),
+    path('getScheduleDetail/', trainee_views.get_schedule_detail),
+    path('cancelAppoint/', trainee_views.cancel_appoint),
+    path('traineeAppoint/', trainee_views.trainee_appoint),
+    path('getTraineeAppointList/', trainee_views.get_trainee_appoint_list),
+    path('getAppointWork/', trainee_views.get_appoint_work),
+    path('saveWork/', trainee_views.save_work),
+
+    # 教练类路径
+    path('getScheduleList/', trainer_views.get_schedule_list),
+    path('createSchedule/', trainer_views.create_schedule),
+    path('getTrainerAppointList/', trainer_views.get_trainer_appoint_list),
+    path('getApplyUserList/', trainer_views.get_apply_user_list),
+    path('applyVerify/', trainer_views.apply_verify),
 ]
 
-handler404 = views.res_404
+handler404 = common_views.res_404

@@ -1,0 +1,160 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    时间预约
+{% endblock %}
+
+{% block mask %}
+    <div class="basic_grey">
+        <div class="button_close">x</div>
+        <div class="title">
+            新建课程表
+            <span>请填写如下内容</span>
+        </div>
+        <div class="line"><span>起始日期</span><input id="begin_dt" type="date" style="font-size: 14px"></div>
+        <div class="line"><span>起始日期</span><input id="end_dt" type="date" style="font-size: 14px"></div>
+        <div class="line"><span></span>
+            <button class="button submit" style="width: 50%">确认</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function init_div_mask() {
+            console.log("init");
+            let div_mask = document.getElementById("div_mask");
+            let begin_dt = document.getElementById("begin_dt");
+            let end_dt = document.getElementById("end_dt");
+            begin_dt.value = get_today_date();
+            begin_dt.min = get_today_date();
+            end_dt.value = get_today_date();
+            end_dt.min = get_today_date();
+            div_mask.getElementsByClassName("submit")["0"].addEventListener("click", function () {
+                call_ajax('createSchedule', {
+                    "begin_dt": document.getElementById("begin_dt").value,
+                    "end_dt": document.getElementById("end_dt").value,
+                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                })
+            })
+            div_mask.getElementsByClassName("button_close")["0"].addEventListener("click", function () {
+                div_mask.style.display = "none";
+            })
+            div_mask.style.display = "block";
+        }
+
+        function createSchedule(res) {
+            if (res["status"] == "00") {
+                const schedule_id = res["data"]["schedule_id"]
+                window.location.href = "/direct/trainer/scheduleDetail?schedule_id=" + schedule_id;
+            } else {
+                const div_mask = document.getElementById("div_mask");
+                let title_span = div_mask.getElementsByClassName("title")[0].children[0];
+                title_span.innerHTML = res["msg"];
+                title_span.style.display = "block";
+
+            }
+        }
+    </script>
+{% endblock %}
+
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="container">
+        <div class="outer">
+            <span style="margin: auto; ">课程列表</span>
+            <div class="operate">
+                <button id="b_create">新建</button>
+            </div>
+        </div>
+
+        <table class="basic_table">
+            <thead>
+            <tr>
+                <th>起止日期</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="result_set">
+            <tr>
+                <td id="tips" colspan="3">数据正在载入中...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+
+        window.onload = function () {
+            call_ajax('getScheduleList', {"csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val()});
+            document.getElementById("b_create").addEventListener("click", function () {
+                init_div_mask();
+            })
+
+        }
+
+        function getScheduleList(res) {
+            /*
+                如果返回的数据内容为空，提示暂无已建立的日程表。
+             */
+            const data = res["data"]
+            if (data == null || data.length == 0) {
+                $("#tips").html("没有已创建的教练日程");
+                return false;
+            }
+
+            /*
+                如果有，则创建返回表格。表格的格式为：
+                <tr id=$schedule_id>
+                    <td>$date</td>
+                    <td>$schedule_stat</td>
+                    <td><span class="o_link">查看</span><span>暂停</span></td>
+                </tr>
+             */
+            const result_set = document.getElementById("result_set");
+            for (let i in data) {
+                const schedule_id = data[i]["schedule_id"];
+                const schedule_stat = data[i]["schedule_stat"];
+                const date = data[i]["begin_dt"] + " ~ " + data[i]["end_dt"];
+                let tr_elem = create_elem("tr", schedule_id);
+                tr_elem.appendChild(create_elem("td", null, null, date));
+                tr_elem.appendChild(create_elem("td", null, null, scheduleStatDic[schedule_stat]));
+                let td_elem = create_elem("td");
+                td_elem.appendChild(create_elem("span", null, "o_link detail", "查看"));
+                td_elem.appendChild(create_elem("span", null, "o_link appoint", "预约列表"));
+                tr_elem.appendChild(td_elem);
+                result_set.appendChild(tr_elem);
+            }
+            result_set.removeChild(document.getElementById("tips").parentNode);
+
+            let objs = document.getElementsByClassName("detail");
+            for (let i in objs) {
+                objs[i].onclick = function () {
+                    let schedule_id = objs[i].parentNode.parentNode.id;
+                    window.location.href = "/direct/trainer/scheduleDetail?schedule_id=" + schedule_id;
+                }
+            }
+
+            let a_objs = document.getElementsByClassName("appoint");
+            for (let i = 0; i < a_objs.length; i++) {
+                a_objs[i].addEventListener("click", function (){
+                    let schedule_id = a_objs[i].parentNode.parentNode.id;
+                    window.location.href = "/direct/trainer/appointList?schedule_id=" + schedule_id;
+                })
+            }
+
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,130 @@
+/*
+    遮罩层的样式，不能删除
+ */
+#div_mask {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+
+.basic_grey {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    max-width: 500px;
+    background: #F7F7F7;
+    padding: 0px 0px 25px 0px;
+    font: 12px Georgia, "Times New Roman", Times, serif;
+    color: #888;
+    text-shadow: 1px 1px 1px #FFF;
+    border: 1px solid #E4E4E4;
+}
+
+.basic_grey .title {
+    display: block;
+    font-size: 20px;
+    padding: 20px 0px 10px 40px;
+    border-bottom: 1px solid #E4E4E4;
+    color: #888888;
+    line-height: 20px;
+}
+
+.basic_grey .title span {
+    display: none;
+    padding-top: 5px;
+    font-size: 12px;
+    color: red;
+}
+
+
+.basic_grey .button_close {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    font-size: 20px;
+    float: right;
+    margin-right: 5px;
+    margin-top: 5px;
+}
+
+.basic_grey .line {
+    margin-top: 10px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.basic_grey .line span {
+    float: left;
+    width: 25%;
+    text-align: right;
+    padding-right: 10px;
+    color: #888;
+}
+
+.basic_grey input[type="text"], .basic_grey input[type="date"] {
+    border: 1px solid #DADADA;
+    color: #888;
+    height: 30px;
+    padding: 3px 3px 3px 5px;
+    width: 50%;
+    font-size: 12px;
+    font-family: "苹方 常规";
+}
+
+.basic_grey .button {
+    padding: 5px 20px 5px 20px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.basic_grey .submit {
+    border: none;
+    color: #FFFFFF;
+    background-color: #165DFF;
+}
+
+.basic_grey .cancel {
+    border: 1px solid #DADADA;
+    color: #888888;
+    background-color: #FFFFFF;
+}
+
+.basic_table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+
+.basic_table td, .basic_table th {
+    border: 1px solid #dee2e6;
+    padding: 10px 5px;
+    text-align: inherit;
+    font:12px "苹方 常规";
+}
+
+.basic_table th {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.basic_table .first_column {
+    /*width: 20px;*/
+}
+
+.basic_table .self {
+    background-color: lightgreen;
+}
+
+.basic_table .others {
+    background-color: lightpink;
+}
+
+.basic_table .disable_time {
+    background-color: grey;
+}

@@ -1,0 +1,117 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    时间预约
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="container">
+        <div class="outer">
+            <span style="margin: auto; ">学员列表</span>
+        </div>
+
+        <table class="basic_table">
+            <thead>
+            <tr>
+                <th>姓名</th>
+                <th>申请时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="result_set">
+            <tr>
+                <td id="tips" colspan="3">数据正在载入中...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+        /**
+         * 预加载页面时：请求后台获取全部申请中用户列表。
+         */
+        window.onload = function () {
+            call_ajax('getApplyUserList', {"csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val()});
+        }
+
+        /**
+         * 上述Ajax执行完的回调处理。主要做以下几件事：
+         * 1. 根据返回的数据列表生成表格；
+         * 2. 生成“通过”和“拒绝”的Ajax点击事件。
+         */
+        function getApplyUserList(res) {
+            if (res["status"] != "00") {
+                alert(res["msg"]);
+                return false;
+            }
+
+            const data = res["data"];
+            if (data.length == 0) {
+                document.getElementById("tips").innerText = "没有需要处理的用户申请";
+                return false;
+            }
+
+            const result_set = document.getElementById("result_set");
+            for (let i = 0; i < data.length; i++) {
+                const user_id = data[i]["user_id"]
+                const user_nm = data[i]["user_nm"]
+                const register_dt = data[i]["register_dt"]
+                const tr_elem = create_elem("tr", data[i]["user_id"]);
+                tr_elem.appendChild(create_elem("td", null, null, user_nm));
+                tr_elem.appendChild(create_elem("td", null, null, register_dt));
+                const td_elem = create_elem("td");
+                td_elem.appendChild(create_elem("span", null, "o_link pass", "通过"));
+                td_elem.appendChild(create_elem("span", null, "o_link deny", "拒绝"));
+                tr_elem.appendChild(td_elem);
+                result_set.appendChild(tr_elem);
+            }
+            result_set.removeChild(document.getElementById("tips").parentNode);
+
+            const o_link = document.getElementsByClassName("o_link");
+            for (let i = 0; i < o_link.length; i++) {
+                let verify_type = "";
+                o_link.item(i).addEventListener("click", function () {
+                    if (this.className.indexOf("pass") != -1) {
+                        verify_type = "00";
+                    } else {
+                        verify_type = "10";
+                    }
+                    const data = {
+                        "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                        "user_id": this.parentNode.parentNode.id,
+                        "verify_type": verify_type,
+                    }
+                    call_ajax("applyVerify", data);
+                })
+            }
+        }
+
+        /**
+         * 处理申请“通过”或“拒绝”的返回事件。
+         * 处理成功时，提示“处理成功”，并在表格中移除对应的一行。
+         * 如果没有待处理数据，显示“没有待处理的数据”。
+         */
+        function applyVerify(res) {
+            const status = res["status"];
+            if (status == "00") {
+                window.alert("处理成功");
+                window.location.reload()
+            } else {
+                window.alert(res["msg"]);
+            }
+        }
+    </script>
+{% endblock %}

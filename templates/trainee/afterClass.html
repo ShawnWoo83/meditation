@@ -1,0 +1,144 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    教练首页
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="logo" style="margin: 20px">
+    </div>
+    <div style="padding: 20px">
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                刚刚完成的对话是否回应了您对话前的期望？如果用1-10分评分，您会打多少分？经过对话，您对之前设定的对话目标有什么新的认识或发现？
+            </div>
+            <div>
+                <textarea class="q1" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少20字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q1" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                在对话中，你有什么收获？留给你印象最深的一两句话或一两个环节是什么？
+            </div>
+            <div>
+                <textarea class="q2" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少25字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q2" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                接下来你会采取的行动。结束这个对话，你会做的一个小小的行动会是什么？你会少做或不做什么？教练将在下次对话时，针对该行动计划。
+            </div>
+            <div>
+                <textarea class="q3" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少20字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q3" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                在今天的对话中，教练怎么做可以更好地支持到你的成长？
+            </div>
+            <div>
+                <textarea class="q4" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少20字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q4" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+
+        <div style="height: 200px">
+            <button class="submit">提交</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        let set_textarea = document.getElementsByTagName("textarea");
+        for (let i = 0; i < set_textarea.length; i++) {
+            set_textarea[i].addEventListener("input", function () {
+                let elem_textarea = set_textarea[i];
+                let length = elem_textarea.value.length;
+                let className = elem_textarea.className;
+                document.getElementsByClassName(className)[1].innerHTML = "已录入" + length + "字";
+            })
+        }
+
+        document.getElementsByClassName("submit")[0].addEventListener("click", function () {
+            let work_text = [];
+            for (let i = 0; i < set_textarea.length; i++) {
+                work_text.push(set_textarea[i].value)
+            }
+            console.log(work_text);
+            let req_data = {
+                "appoint_id": getQueryString("appoint_id"),
+                "work_type": "02",
+                "work_text": JSON.stringify(work_text),
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            }
+            call_ajax("saveWork", req_data);
+        })
+
+        function saveWork(res) {
+            if (res["status"] == "00") {
+                window.location.href = "/direct/trainee/appointList";
+            }
+        }
+
+        window.onload = function () {
+            const appoint_id = getQueryString("appoint_id");
+
+            // appoint_id，直接跳转预约列表
+            if (appoint_id == null) {
+                window.location.href = "/templates/trainer/appointList";
+            }
+
+            // 构建ajax请求Json，获得返回数据
+            const data = {
+                "appoint_id": appoint_id,
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                "work_type": "02",
+            };
+            call_ajax("getAppointWork", data);
+        }
+
+        function getAppointWork(res) {
+            if (res["status"] == "00") {
+                const work_set = res["data"][0]["review_work"];
+                console.log(work_set);
+                for (let i = 0; i < work_set.length; i++) {
+                    let elem_textarea = set_textarea[i];
+                    elem_textarea.value = work_set[i];
+                    let length = elem_textarea.value.length;
+                    let className = elem_textarea.className;
+                    document.getElementsByClassName(className)[1].innerHTML = "已录入" + length + "字";
+                }
+
+                if (res["user_type"] == "01") {
+                    let button = document.getElementsByClassName("submit")[0];
+                    button.parentNode.removeChild(button);
+                }
+            }
+        }
+    </script>
+{% endblock %}

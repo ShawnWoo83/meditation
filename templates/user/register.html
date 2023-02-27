@@ -1,0 +1,106 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    用户注册
+{% endblock %}
+
+{% block content %}
+
+    {% csrf_token %}
+    <div id="app">
+
+        <div class="head">
+            <img src="/static/images/home.png" style="width: 20px; height: 20px"
+                 onclick="window.location.href='/hello/'">
+        </div>
+        <div class="logo_container">
+            <div class="logo">
+            </div>
+        </div>
+
+
+        <div class="login_container">
+            <div class="line">
+                <input placeholder="请输入注册账号" maxlength="11" id="login_id">
+            </div>
+            <div class="line" style="margin-top: 5px">
+                <span id="tips_login_id" style="display:none;font-size: 12px; color: red; width: 100%;">异常提示</span>
+            </div>
+            <div class="line">
+                <input type="password" placeholder="请输入密码" id="login_pwd">
+            </div>
+            <div class="line" style="margin-top: 5px">
+                <span id="tips_login_pwd" style="display:none;font-size: 12px; color: red; width: 100%;">异常提示</span>
+            </div>
+            <div class="line">
+                <input type="text" placeholder="请输入您的姓名" id="user_nm">
+            </div>
+            <div class="line" style="margin-top: 5px">
+                <span id="tips_user_nm" style="display:none;font-size: 12px; color: red; width: 100%;">异常提示</span>
+            </div>
+            <div class="line">
+                <button class="login">注册</button>
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block script %}
+
+    <script type="text/javascript">
+
+        let login_id = document.getElementById("login_id");
+        let login_pwd = document.getElementById("login_pwd");
+        let user_nm = document.getElementById("user_nm");
+        let tips_login_id = document.getElementById("tips_login_id");
+        let tips_login_pwd = document.getElementById("tips_login_pwd");
+        let tips_user_nm = document.getElementById("tips_user_nm");
+
+
+        document.getElementsByClassName("login")[0].addEventListener("click", function () {
+            if (!validatePhone(login_id.value)) {
+                tips_login_id.innerText = "请使用手机号码作为注册账号";
+                tips_login_id.style.display = "block";
+                return false;
+            } else {
+                tips_login_id.style.display = "none";
+            }
+
+            if (!validatePassword(login_pwd.value)) {
+                tips_login_pwd.innerText = "密码长度必须为6位，且只能由字母或数字构成";
+                tips_login_pwd.style.display = "block";
+                return false;
+            } else {
+                tips_login_pwd.style.display = "none";
+            }
+
+            if (isNullOrEmpty(user_nm.value)) {
+                tips_user_nm.innerText = "姓名不能为空";
+                tips_user_nm.style.display = "block";
+                return false;
+            } else {
+                tips_login_pwd.style.display = "none";
+            }
+
+            let req_data = {
+                "login_id": login_id.value,
+                "login_pwd": login_pwd.value,
+                "user_nm": user_nm.value,
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            };
+            call_ajax("register", req_data);
+        })
+
+        function register(res) {
+            if (res["status"] == "00") {
+                alert(res["msg"]);
+                window.location.href = "/hello";
+            } else {
+                alert(res["msg"]);
+            }
+        }
+    </script>
+
+{% endblock %}

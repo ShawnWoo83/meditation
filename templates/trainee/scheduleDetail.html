@@ -1,0 +1,58 @@
+{% extends 'common/DetailTemplate.html' %}
+
+{% block interface %}
+    <script type="text/javascript">
+
+        function bind_td_cell_click() {
+            let cell_list = document.getElementsByClassName("td_cell");
+            for (let i = 0; i < cell_list.length; i++) {
+                cell_list[i].addEventListener("click", function () {
+                    const class_name = this.className;
+                    if (class_name.indexOf("disable") >= 0) {
+                        window.alert("该时间段无法预约");
+                    } else if (class_name.indexOf("others") >= 0) {
+                        window.alert("该时间段已被预约");
+                    } else if (class_name.indexOf("self") >= 0) {
+                        if (window.confirm("是否取消该预约")) {
+                            let req_data = {
+                                "schedule_id": getQueryString("schedule_id"),
+                                "appoint_id": this.childNodes[0].className,
+                                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                            }
+                            call_ajax("cancelAppoint", req_data);
+                        }
+
+                    } else {
+                        if (this.id.split("|")[1] == "5") {
+                            window.alert("每节课的时长至少为1小时，请更换时间");
+                        } else {
+
+                            if (window.confirm("是否确认预约该时间点")) {
+                                let req_date = {
+                                    "schedule_id": getQueryString("schedule_id"),
+                                    "appoint_time": this.id,
+                                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                                };
+                                call_ajax("traineeAppoint", req_date);
+                            }
+                        }
+                    }
+                })
+            }
+        }
+
+        function cancelAppoint(res) {
+            if (res["status"] == "00") {
+                window.location.reload();
+            }
+        }
+
+        function traineeAppoint(res) {
+            if (res["status"] == "00") {
+                window.location.reload();
+            }
+        }
+
+
+    </script>
+{% endblock %}

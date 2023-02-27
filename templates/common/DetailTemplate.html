@@ -1,0 +1,166 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    时间预约
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+
+    <div class="container">
+
+
+        <div class="outer">
+            <span style="margin: auto; ">课程安排</span>
+
+            <div class="operate" style="display:none;">
+                <button id="b_save">开放预约</button>
+                <button id="b_reset" onclick="window.location.reload()">重置</button>
+            </div>
+        </div>
+
+
+        <table class="basic_table">
+            <thead id="thead">
+            <tr>
+                <th>周一</th>
+                <th>周二</th>
+                <th>周三</th>
+                <th>周四</th>
+                <th>周五</th>
+            </tr>
+            </thead>
+            <tbody id="result_set">
+            <tr>
+                <td id="tips" colspan="5">数据正在载入中...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+
+        window.onload = function () {
+            const schedule_id = getQueryString("schedule_id");
+
+            // 如果未获得schedule_id，直接跳转日程列表
+            if (schedule_id == null) {
+                window.location.href = "/templates/trainer/scheduleList";
+            }
+
+            // 构建ajax请求Json，获得返回数据
+            const data = {
+                "schedule_id": schedule_id,
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            };
+            call_ajax("getScheduleDetail", data);
+
+            if (window.location.href.indexOf("trainer") != -1) {
+                bind_operate_button_click();
+            }
+
+        }
+
+        /**
+         * Ajax响应的处理
+         * @param res
+         * @returns {boolean}
+         */
+        function getScheduleDetail(res) {
+            //异常判断，如果后端返回99，则显示没有找到已创建的日期。
+            if (res["status"] != "00") {
+                $("#tips").html("未找到已创建的日程表");
+                return false;
+            }
+
+            // 获取日程表的总跨越日期
+            const begin_dt = res["data"]["begin_dt"];
+            const end_dt = res["data"]["end_dt"];
+            const schedule_length = getDayDiff(begin_dt, end_dt) + 1;
+
+            // 构造thead
+            let thead = document.getElementById("thead");
+            let tr = create_elem("tr");
+            tr.appendChild(create_elem("th", null, "first_column"));
+            for (let i = 0; i < schedule_length; i++) {
+                let th = create_elem("th", null, null, dayDic[(new Date(begin_dt).getDay() + i) % 7]);
+                tr.appendChild(th);
+            }
+            thead.removeChild(thead.firstElementChild);
+            thead.appendChild(tr);
+
+            // 构造tbody
+            let result_set = document.getElementById("result_set");
+            for (let i = 1; i < 14; i++) {
+                let tbody_tr = create_elem("tr");
+                tbody_tr.appendChild(create_elem("td", null, null, timeDic[i]));
+                for (let j = 0; j < schedule_length; j++) {
+                    //在构建td时，会为每个td单元格分配一个id，id的命名规则为：“#天#|#时#”
+                    tbody_tr.appendChild(create_elem("td", (j + 1) + "|" + i, "td_cell"));
+                }
+                result_set.append(tbody_tr);
+                //在第5行之后追加一个跨列行，用于分隔上下午
+                if (i == 5) {
+                    let s_tr = create_elem("tr");
+                    let s_td = create_elem("td");
+                    s_td.setAttribute("colspan", schedule_length + 1);
+                    s_tr.appendChild(s_td);
+                    result_set.append(s_tr);
+                }
+            }
+            result_set.removeChild(result_set.firstElementChild);
+
+            // 渲染disable_time
+            const disable_time = res["data"]["disable_time"];
+            for (let i in disable_time) {
+                let s_td = document.getElementById(disable_time[i]);
+                s_td.className.length == 0 ? s_td.className = "disable_time" : s_td.className += " disable_time";
+            }
+
+            // 渲染appoint_time
+            const appoint_set = res["data"]["appoint_set"];
+            for (let i in appoint_set) {
+                appoint_set[i]["appoint_time"].forEach(function (value, index, obj) {
+                    let cell = document.getElementById(value);
+                    cell.className += " " + appoint_set[i]["appoint_type"];
+                    if (window.location.href.indexOf("trainer") != -1) {
+                        cell.appendChild(
+                            create_elem("span", null, appoint_set[i]["appoint_id"], appoint_set[i]["trainee_nm"])
+                        )
+                    } else {
+                        cell.appendChild(
+                            create_elem("span", null, appoint_set[i]["appoint_id"])
+                        )
+                    }
+                })
+
+            }
+
+
+            //绑定日程表单元格的onclick事件
+            bind_td_cell_click();
+        }
+
+
+    </script>
+{% endblock %}
+
+{% block interface %}
+    <script type="text/javascript">
+        function bind_td_cell_click() {
+            console.log("this is an interface function");
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    时间预约
+{% endblock %}
+
+
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="container">
+        <div class="outer">
+            <span style="margin: auto">学员预约列表</span>
+        </div>
+
+        <table class="basic_table">
+            <thead>
+            <tr>
+                <th>预约日期及时间</th>
+                <th>学员姓名</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="result_set">
+            <tr>
+                <td id="tips" colspan="3">数据正在载入中...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+
+        window.onload = function () {
+            let req_data = {
+                "schedule_id": getQueryString("schedule_id"),
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            }
+            call_ajax('getTrainerAppointList', req_data);
+
+        }
+
+        function getTrainerAppointList(res) {
+            /*
+                如果返回的数据内容为空，提示暂无已建立的日程表。
+             */
+            const data = res["data"]
+            if (data == null || data.length == 0) {
+                $("#tips").html("没有预约记录");
+                return false;
+            }
+
+            /*
+                如果有，则创建返回表格。表格的格式为：
+                <tr id=$schedule_id>
+                    <td>$date</td>
+                    <td>$schedule_stat</td>
+                    <td><span class="o_link">查看</span><span>暂停</span></td>
+                </tr>
+             */
+            const result_set = document.getElementById("result_set");
+            for (let i in data) {
+                const appoint_id = data[i]["appoint_id"];
+                const full_date = data[i]["full_date"];
+                const trainee_nm = data[i]["trainee_nm"];
+                let tr_elem = create_elem("tr", appoint_id);
+                tr_elem.appendChild(create_elem("td", null, null, full_date));
+                tr_elem.appendChild(create_elem("td", null, null, trainee_nm));
+                let td_elem = create_elem("td");
+                td_elem.appendChild(create_elem("span", null, "o_link preview", "课前作业"));
+                td_elem.appendChild(create_elem("span", null, "o_link review", "课后作业"));
+                tr_elem.appendChild(td_elem);
+                result_set.appendChild(tr_elem);
+            }
+            result_set.removeChild(document.getElementById("tips").parentNode);
+
+
+            let objs = document.getElementsByClassName("preview");
+            for (let i in objs) {
+                objs[i].onclick = function () {
+                    let appoint_id = objs[i].parentNode.parentNode.id;
+                    window.location.href = "/direct/trainee/preClass?appoint_id=" + appoint_id;
+                }
+            }
+
+            let a_objs = document.getElementsByClassName("review");
+            for (let i in a_objs) {
+                a_objs[i].onclick = function () {
+                    let appoint_id = a_objs[i].parentNode.parentNode.id;
+                    window.location.href = "/direct/trainee/afterClass?appoint_id=" + appoint_id;
+                }
+            }
+
+        }
+
+
+    </script>
+{% endblock %}

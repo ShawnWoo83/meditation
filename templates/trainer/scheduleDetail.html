@@ -1,0 +1,47 @@
+{% extends 'common/DetailTemplate.html' %}
+
+
+{% block interface %}
+    <script type="text/javascript">
+
+        function bind_td_cell_click() {
+            let cell_list = document.getElementsByClassName("td_cell");
+            for (let i = 0; i < cell_list.length; i++) {
+                cell_list[i].addEventListener("click", function () {
+                    if (this.className.indexOf("disable_time") < 0) {
+                        this.className += " disable_time";
+                    } else {
+                        this.className = this.className.replace("disable_time", "").trim();
+                    }
+                })
+            }
+        }
+
+        function bind_operate_button_click() {
+            // 构建保存按钮点击事件
+            let b_save = document.getElementById("b_save");
+            b_save.parentNode.style["display"] = 'block';
+            b_save.addEventListener('click', function () {
+                let elem_list_disable_time = document.getElementsByClassName("disable_time");
+                let disable_time = [];
+                for (let i = 0; i < elem_list_disable_time.length; i++) {
+                    disable_time.push(elem_list_disable_time[i].id);
+                }
+
+                let req_data = {
+                    "schedule_id": schedule_id,
+                    "disable_time": JSON.stringify(disable_time),
+                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                };
+                call_ajax("saveScheduleDetail", req_data)
+            });
+        }
+
+
+        function saveScheduleDetail(res) {
+            if (res["status"] == "00") {
+                window.location.href = "/direct/trainer/scheduleList"
+            }
+        }
+    </script>
+{% endblock %}

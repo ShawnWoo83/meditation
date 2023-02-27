@@ -1,0 +1,120 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    教练首页
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="logo" style="margin: 20px">
+    </div>
+    <div style="padding: 20px">
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                上次对话后，你的行动执行计划：计划执行有困难吗？效果如何？
+            </div>
+            <div>
+                <textarea class="q1" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少20字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q1" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+        <div style="margin-bottom: 50px">
+            <div style="padding-bottom: 10px; font-size: 12px">
+                你希望本次会谈主要探讨什么议题，与项目之初设定的成长目标是什么关系？请用”我如何......”来描述你的议题。你希望对话结束后有什么收获
+            </div>
+            <div>
+                <textarea class="q2" style="width: 100%; height: 100px; font-size: 14px"
+                          placeholder="至少30字"></textarea>
+            </div>
+            <div style="margin-top: 5px">
+                <span class="q2" style="font:12px red;float: right">已录入0字</span>
+            </div>
+        </div>
+
+        <div>
+            <button class="submit">提交</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        let set_textarea = document.getElementsByTagName("textarea");
+        for (let i = 0; i < set_textarea.length; i++) {
+            set_textarea[i].addEventListener("input", function () {
+                let elem_textarea = set_textarea[i];
+                let length = elem_textarea.value.length;
+                let className = elem_textarea.className;
+                document.getElementsByClassName(className)[1].innerHTML = "已录入" + length + "字";
+            })
+        }
+
+        document.getElementsByClassName("submit")[0].addEventListener("click", function () {
+            let work_text = [];
+            for (let i = 0; i < set_textarea.length; i++) {
+                work_text.push(set_textarea[i].value)
+            }
+            console.log(work_text);
+            let req_data = {
+                "appoint_id": getQueryString("appoint_id"),
+                "work_type": "01",
+                "work_text": JSON.stringify(work_text),
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            }
+            call_ajax("saveWork", req_data);
+        })
+
+        function saveWork(res) {
+            if (res["status"] == "00") {
+                window.location.href = "/direct/trainee/appointList";
+            }
+        }
+
+        window.onload = function () {
+            const appoint_id = getQueryString("appoint_id");
+
+            // appoint_id，直接跳转预约列表
+            if (appoint_id == null) {
+                window.location.href = "/templates/trainer/appointList";
+            }
+
+            // 构建ajax请求Json，获得返回数据
+            const data = {
+                "appoint_id": appoint_id,
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                "work_type": "01",
+            };
+            call_ajax("getAppointWork", data);
+        }
+
+        function getAppointWork(res) {
+            if (res["status"] == "00") {
+                const work_set = res["data"][0]["preview_work"];
+                console.log(work_set);
+                for (let i = 0; i < work_set.length; i++) {
+                    let elem_textarea = set_textarea[i];
+                    elem_textarea.value = work_set[i];
+                    let length = elem_textarea.value.length;
+                    let className = elem_textarea.className;
+                    document.getElementsByClassName(className)[1].innerHTML = "已录入" + length + "字";
+                }
+
+                if (res["user_type"] == "01") {
+                    let button = document.getElementsByClassName("submit")[0];
+                    button.parentNode.removeChild(button);
+                }
+            }
+        }
+    </script>
+{% endblock %}

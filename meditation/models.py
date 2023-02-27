@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class UserInfo(models.Model):
     def __str__(self):
         return str(self.user_id)
@@ -31,3 +32,47 @@ class UserInfo(models.Model):
     class Meta:
         managed = False
         db_table = 'tbl_user_info'
+
+
+class ScheduleInfo(models.Model):
+    def __str__(self):
+        return str(self.schedule_id)
+
+    class ScheduleStat(models.TextChoices):
+        NORMAL = '00', 'Normal'
+        INITIAL = '09', 'Initial'
+        CLOSE = '10', 'Close'
+
+    schedule_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False)
+    trainer = models.ForeignKey(UserInfo, on_delete=models.DO_NOTHING, db_column='trainer_id')
+    begin_dt = models.DateField()
+    end_dt = models.DateField()
+    disable_time = models.JSONField(null=True)
+    schedule_stat = models.CharField(max_length=2, choices=ScheduleStat.choices)
+    last_upd_dt = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'tbl_schedule_info'
+
+
+class AppointInfo(models.Model):
+    class AppointStat(models.TextChoices):
+        NORMAL = '00', 'Normal'
+        SELF_CANCEL = '10', 'Self Cancel'
+        TRAINER_CANCEL = '11', 'Trainer Cancel'
+        DONE = '01', 'Train Finished'
+
+    appoint_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False)
+    trainee = models.ForeignKey(UserInfo, on_delete=models.DO_NOTHING, db_column='trainee_id')
+    schedule = models.ForeignKey(ScheduleInfo, on_delete=models.DO_NOTHING, db_column='schedule_id')
+    appoint_time = models.JSONField()
+    appoint_dt = models.DateField()
+    appoint_stat = models.CharField(max_length=2, choices=AppointStat.choices)
+    preview_work = models.JSONField()
+    review_work = models.JSONField()
+    last_upd_dt = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'tbl_appoint_info'
