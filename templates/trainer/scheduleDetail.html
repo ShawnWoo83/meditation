@@ -29,7 +29,7 @@
                 }
 
                 let req_data = {
-                    "schedule_id": schedule_id,
+                    "schedule_id": getQueryString("schedule_id"),
                     "disable_time": JSON.stringify(disable_time),
                     "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
                 };
@@ -40,7 +40,10 @@
 
         function saveScheduleDetail(res) {
             if (res["status"] == "00") {
-                window.location.href = "/direct/trainer/scheduleList"
+                window.alert(res["msg"]);
+                window.location.href = "/direct/trainer/scheduleList";
+            } else {
+                window.alert(res["msg"]);
             }
         }
     </script>

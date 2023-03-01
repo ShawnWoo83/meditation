@@ -85,6 +85,26 @@ def get_trainer_appoint_list(request):
 
 
 @login_required
+def save_schedule_detail(request):
+    context = {}
+    try:
+        schedule_id = request.POST["schedule_id"]
+        disable_time = request.POST["disable_time"]
+        schedule_info = ScheduleInfo.objects.get(pk=schedule_id)
+        schedule_info.disable_time = json.loads(disable_time)
+        schedule_info.schedule_stat = ScheduleInfo.ScheduleStat.NORMAL
+        schedule_info.last_upd_dt = timezone.now()
+        schedule_info.save()
+        context["status"] = "00"
+        context["msg"] = "保存成功"
+    except Exception as e:
+        context["status"] = "99"
+        context["msg"] = "处理失败，请稍后再试"
+    finally:
+        return JsonResponse(context)
+
+
+@login_required
 def get_apply_user_list(request):
     context = {}
     user_set = UserInfo.objects.filter(

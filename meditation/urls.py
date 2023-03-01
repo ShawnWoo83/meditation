@@ -46,6 +46,7 @@ urlpatterns = [
     path('getTrainerAppointList/', trainer_views.get_trainer_appoint_list),
     path('getApplyUserList/', trainer_views.get_apply_user_list),
     path('applyVerify/', trainer_views.apply_verify),
+    path('saveScheduleDetail/', trainer_views.save_schedule_detail),
 ]
 
 handler404 = common_views.res_404
