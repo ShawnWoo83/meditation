@@ -1,0 +1,278 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    教练首页
+{% endblock %}
+
+{% block mask %}
+    <div class="basic_grey">
+        <div class="button_close" onclick="mask_close()">x</div>
+        <div class="title">
+            新建问题
+            <span>请填写如下内容</span>
+        </div>
+        <div class="line"><span>问题题目</span><textarea id="context" placeholder="请填写问题名称"></textarea></div>
+        <div class="line"><span>最小字数</span><input id="min_length" type="text" style="font-size: 14px"></div>
+        <div class="line"><span></span>
+            <button class="button submit" style="width: 50%" onclick="update_table();">确认</button>
+        </div>
+        <input type="hidden" id="operate_type">
+    </div>
+    <script type="text/javascript">
+        function call_mask(operate_type) {
+            const result_set = document.getElementById("result_set");
+            const selected = getSelected();
+            switch (operate_type) {
+                case "update":
+                    if (getSelected() < 0) {
+                        alert("请先选择一条记录");
+                        return false;
+                    } else {
+                        document.getElementById("context").value = result_set.children[selected].children[1].innerHTML;
+                        document.getElementById("min_length").value = result_set.children[selected].children[2].innerHTML;
+                    }
+                    break;
+                case "insert":
+                    document.getElementById("context").value = "";
+                    document.getElementById("min_length").value = "";
+                    break;
+                default:
+                    return false;
+            }
+            document.getElementById("operate_type").value = operate_type;
+            document.getElementById("div_mask").style.display = "block";
+        }
+
+        function update_table() {
+            const context = document.getElementById("context").value;
+            const min_length = document.getElementById("min_length").value;
+            const operate_type = document.getElementById("operate_type").value;
+            if (isNullOrEmpty(context)) {
+                window.alert("问题题目不能为空");
+                return false;
+            }
+            if (!validateNumber(min_length)) {
+                window.alert("最小长度必须为大于0的数字");
+                return false;
+            }
+
+            const result_set = document.getElementById("result_set");
+            const selected = getSelected();
+            switch (operate_type) {
+                case "update":
+                    if (selected < 0) {
+                        alert("请先选择一条记录");
+                    } else {
+                        result_set.children[selected].children[1].innerHTML = context;
+                        result_set.children[selected].children[2].innerHTML = min_length;
+                    }
+                    break;
+                case "insert":
+                    let elem_tr = create_elem("tr");
+                    let elem_td = create_elem("td");
+                    let elem_checkbox = create_elem("input");
+                    elem_checkbox.type = "checkbox";
+                    elem_checkbox.name = "c_row";
+                    elem_checkbox.addEventListener("change", clearSelected);
+                    elem_td.appendChild(elem_checkbox);
+                    elem_tr.appendChild(elem_td);
+                    elem_tr.appendChild(create_elem("td", null, null, context));
+                    elem_tr.appendChild(create_elem("td", null, null, min_length));
+                    if (selected < 0) {
+                        result_set.appendChild(elem_tr);
+                    } else {
+                        result_set.children[selected].insertAdjacentElement('afterend', elem_tr);
+                    }
+                    appendId();
+                    break;
+                default:
+                    return false;
+            }
+            mask_close();
+        }
+
+        function mask_close() {
+            document.getElementById("context").value = "";
+            document.getElementById("min_length").value = "";
+            document.getElementById("operate_type").value = "";
+            document.getElementById("div_mask").style.display = "none";
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="container">
+        <div class="outer">
+            <span style="margin: auto; ">问卷列表</span>
+
+            <div class="operate" style="display:none;">
+                <button id="b_save">保存</button>
+                <button id="b_reset" onclick="window.location.reload()">重置</button>
+            </div>
+        </div>
+
+        <table class="basic_table">
+            <thead>
+            <tr>
+                <th style="width: 10%"></th>
+                <th>问卷列表</th>
+                <th style="width: 20%">限定字数</th>
+            </tr>
+            </thead>
+            <tbody id="result_set">
+            <tr>
+                <td id="tips" colspan="3">数据正在载入中...</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 20px">
+            <button class="button" onclick="b_new();">新增</button>
+            <button class="button" id="b_upd" onclick="b_upd()">编辑</button>
+            <button class="button" id="b_del" onclick="b_del()">删除</button>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        window.onload = function () {
+            const survey_id = getQueryString("survey_id");
+
+            if (survey_id == null) {
+                window.location.href = "/direct/trainer/surveyList";
+            }
+            const data = {
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                "survey_id": survey_id
+            }
+            call_ajax('getSurveyQuestion', data);
+
+        }
+
+        function getSurveyQuestion(res) {
+            if (res["status"] != '00') {
+                alert(res["msg"]);
+                return false;
+            }
+
+            const data = res["data"];
+            const result_set = document.getElementById("result_set");
+
+            data.forEach(function (value, index, obj) {
+                let elem_tr = create_elem("tr");
+                let elem_td = create_elem("td");
+                let elem_checkbox = create_elem("input");
+                elem_checkbox.type = "checkbox";
+                elem_checkbox.name = "c_row";
+                elem_checkbox.addEventListener("change", clearSelected);
+                elem_td.appendChild(elem_checkbox);
+                elem_tr.appendChild(elem_td);
+                elem_tr.appendChild(create_elem("td", null, null, value["context"]));
+                elem_tr.appendChild(create_elem("td", null, null, value["min_length"]));
+                result_set.appendChild(elem_tr);
+            })
+            appendId();
+            bind_operate_button_click();
+            result_set.removeChild(document.getElementById("tips").parentNode);
+
+
+        }
+
+
+        function bind_operate_button_click() {
+            // 构建保存按钮点击事件
+            let b_save = document.getElementById("b_save");
+            b_save.parentNode.style["display"] = 'block';
+            b_save.addEventListener('click', function () {
+
+                const elem_list = document.getElementById("result_set").children;
+                let question_set = [];
+                for (let i = 0; i < elem_list.length; i++) {
+                    question_set.push({
+                        "context":elem_list[i].children[1].innerHTML,
+                        "min_length":elem_list[i].children[2].innerHTML,
+                    })
+                }
+
+                let req_data = {
+                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                    "survey_id": getQueryString("survey_id"),
+                    "question_set": JSON.stringify(question_set),
+                };
+                call_ajax("updateSurvey", req_data)
+            });
+        }
+
+        function updateSurvey(res){
+            if (res["status"] !== "00"){
+                alert(res["msg"]);
+            } else {
+                alert("修改成功");
+                window.location.href = "/direct/trainer/surveyList";
+            }
+        }
+
+
+        function appendId() {
+            const c_row = document.getElementsByName("c_row");
+            c_row.forEach(function (value, key, parent) {
+                c_row[key].id = key + "";
+            })
+        }
+
+        function clearSelected() {
+            let selected_id = this.id;
+            const c_row = document.getElementsByName("c_row");
+            c_row.forEach(function (value, key, parent) {
+                if (c_row[key].id !== selected_id) {
+                    c_row[key].checked = false;
+                }
+            })
+        }
+
+
+        function getSelected() {
+            const c_row = document.getElementsByName("c_row");
+            if (c_row) {
+                let selected = -1;
+                c_row.forEach(function (value, index, obj) {
+                    if (value.checked) {
+                        selected = index;
+                    }
+                })
+                return selected;
+            } else {
+                return -1;
+            }
+        }
+
+        function b_new() {
+            call_mask("insert");
+        }
+
+        function b_upd() {
+            call_mask("update");
+        }
+
+        function b_del() {
+            let selected = getSelected();
+            if (selected < 0) {
+                alert("请先选择一条记录");
+                return false;
+            }
+            document.getElementById("result_set").children[selected].remove();
+        }
+    </script>
+{% endblock %}
