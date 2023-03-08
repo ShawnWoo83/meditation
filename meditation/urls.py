@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # 首页
+    path('', common_views.hello),
     path('hello/', common_views.hello),
 
     # 以下为特殊的调用，包括直接调用页面及ajax调用
@@ -47,6 +48,9 @@ urlpatterns = [
     path('getApplyUserList/', trainer_views.get_apply_user_list),
     path('applyVerify/', trainer_views.apply_verify),
     path('saveScheduleDetail/', trainer_views.save_schedule_detail),
+    path('getSurveyList/', trainer_views.get_survey_list),
+    path('getSurveyQuestion/', trainer_views.get_survey_question),
+    path('updateSurvey/', trainer_views.update_survey),
 ]
 
 handler404 = common_views.res_404

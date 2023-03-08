@@ -76,13 +76,21 @@ WSGI_APPLICATION = 'meditation.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'northwind',
+    #     'USER': 'northwind',
+    #     'PASSWORD': 'Northwind@99',
+    #     'HOST': 'rm-uf6zs8ob2g744zle9vo.mysql.rds.aliyuncs.com',
+    #     'PORT': '3306',
+    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'northwind',
-        'USER': 'northwind',
-        'PASSWORD': 'Northwind@99',
-        'HOST': 'rm-uf6zs8ob2g744zle9vo.mysql.rds.aliyuncs.com',
-        'PORT': '3306',
+        'NAME': 'meditation',
+        'USER': 'xtzsdataOpr',
+        'PASSWORD': 'We0aer&a',
+        'HOST': '172.20.0.127',
+        'PORT': '23306',
     }
 }
 
@@ -131,3 +139,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Session保存机制
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_COOKIE_AGE = 1209600
+
+# Logging输出
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}

@@ -55,7 +55,6 @@
 
 .basic_grey .line {
     margin-top: 10px;
-    height: 50px;
     display: flex;
     align-items: center;
 }
@@ -73,9 +72,23 @@
     color: #888;
     height: 30px;
     padding: 3px 3px 3px 5px;
-    width: 50%;
+    width: 70%;
     font-size: 12px;
     font-family: "苹方 常规";
+}
+
+.basic_grey textarea {
+    border: 1px solid #DADADA;
+    color: #888;
+    height: 70px;
+    padding: 3px 3px 3px 5px;
+    width: 70%;
+    font-size: 12px;
+    font-family: "苹方 常规";
+}
+
+.basic_grey textarea::placeholder {
+    color: #999;
 }
 
 .basic_grey .button {
@@ -106,7 +119,7 @@
     border: 1px solid #dee2e6;
     padding: 10px 5px;
     text-align: inherit;
-    font:12px "苹方 常规";
+    font: 12px "苹方 常规";
 }
 
 .basic_table th {

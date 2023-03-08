@@ -76,3 +76,31 @@ class AppointInfo(models.Model):
     class Meta:
         managed = False
         db_table = 'tbl_appoint_info'
+
+
+class SurveyInfo(models.Model):
+    class SurveyType(models.TextChoices):
+        PRE_TERM = '01',
+        MID_TERM = '02',
+        END_TERM = '03',
+        PRE_CLASS = '11',
+        END_CLASS = '12',
+
+    class SurveyStat(models.TextChoices):
+        NORMAL = '00',
+        DISABLE = '01',
+
+    survey_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False)
+    survey_type = models.CharField(max_length=2, choices=SurveyType.choices)
+    survey_stat = models.CharField(max_length=2, choices=SurveyStat.choices)
+    """
+        Json格式如下：
+        [{context:#context#,min_length=#min_length#}]
+    """
+    question_list = models.JSONField()
+    trainer = models.ForeignKey(UserInfo, on_delete=models.DO_NOTHING, db_column='trainer_id')
+    create_dt = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'tbl_survey_info'

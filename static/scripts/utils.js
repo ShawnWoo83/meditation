@@ -11,3 +11,8 @@ function validatePassword(value) {
 function isNullOrEmpty(value) {
     return /^\s*$/.test(value);
 }
+
+function validateNumber(value) {
+    const reg = /^\d*[1-9]\d*$/;
+    return reg.test(value)
+}

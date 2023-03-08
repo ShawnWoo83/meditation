@@ -3,14 +3,17 @@ import time
 import datetime
 import json
 
+from django.db import transaction
 from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
 
-from meditation.models import UserInfo, ScheduleInfo, AppointInfo
+from meditation.models import UserInfo, ScheduleInfo, AppointInfo, SurveyInfo
 from meditation.utils import utils
 from meditation.wrapper.wraps import login_required
 from meditation.bus import business
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -130,3 +133,63 @@ def apply_verify(request):
         "status": "00",
     }
     return JsonResponse(context)
+
+
+@login_required
+def get_survey_list(request):
+    context = {}
+    user_info: UserInfo = request.session["user"]
+    survey_set = SurveyInfo.objects.filter(
+        survey_stat=SurveyInfo.SurveyStat.NORMAL,
+        trainer=user_info,
+    ).values(
+        "survey_id",
+        "survey_type",
+        'create_dt',
+    )
+    survey_list = utils.obj_set_to_json(survey_set)
+    context["data"] = survey_list
+    context["status"] = "00"
+    logger.info(context)
+    return JsonResponse(context)
+
+
+@login_required
+def get_survey_question(request):
+    context = {}
+    survey_id = request.POST["survey_id"]
+    logger.info(survey_id)
+    survey_info: SurveyInfo = SurveyInfo.objects.get(
+        pk=survey_id,
+        survey_stat=SurveyInfo.SurveyStat.NORMAL,
+    )
+    context["data"] = survey_info.question_list
+    context["status"] = "00"
+    logger.info(context)
+    return JsonResponse(context)
+
+
+@login_required
+@transaction.atomic()
+def update_survey(request):
+    survey_id = request.POST["survey_id"]
+    question_set = json.loads(request.POST["question_set"])
+    logger.info(question_set)
+    survey_info: SurveyInfo = SurveyInfo.objects.get(pk=survey_id)
+    survey_info.survey_stat = SurveyInfo.SurveyStat.DISABLE
+
+    try:
+        with transaction.atomic():
+            survey_info.save()
+            SurveyInfo.objects.create(
+                survey_type=survey_info.survey_type,
+                trainer=survey_info.trainer,
+                question_list=question_set,
+                create_dt=timezone.now(),
+                survey_stat=SurveyInfo.SurveyStat.NORMAL,
+            )
+    except Exception as e:
+        logger.error(e)
+    return JsonResponse({
+        "status": "00",
+    })
