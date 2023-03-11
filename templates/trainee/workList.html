@@ -1,0 +1,113 @@
+{% extends 'common/base.html' %}
+{% block title %}
+    教练首页
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="head">
+        <img src="/static/images/back.png" style="width: 20px; height: 20px; margin-right: 10px"
+             onclick="window.history.back()">
+        <img src="/static/images/home.png" style="width: 20px; height: 20px"
+             onclick="window.location.href='/hello/'">
+        <img src="/static/images/logout.png" style="width: 20px; height: 20px; float: right"
+             onclick="window.location.href='/logout'">
+    </div>
+    <div class="logo" style="margin: 20px">
+    </div>
+    <div class="survey">
+
+
+        <div>
+            <button class="submit">提交</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        window.onload = function () {
+            call_ajax("getAppointWork", {
+                "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                "work_type": getQueryString("work_type"),
+                "appoint_id": getQueryString("appoint_id"),
+            })
+        }
+
+        function getAppointWork(res) {
+            if (res["status"] !== "00") {
+                alert(res["msg"]);
+                return false;
+            }
+
+            const survey = document.getElementsByClassName("survey")[0];
+            const work_list = res["data"]["work_list"];
+            const survey_id = res["data"]["survey_id"];
+
+            work_list.forEach(function (value, key, parent) {
+                let elem_topic = create_elem("div", null, "topic");
+                let elem_question = create_elem("div", null, "question");
+                let elem_tips = create_elem("div", null, "tips");
+                let elem_textarea = create_elem("textarea");
+                elem_question.innerHTML = value["context"];
+                elem_question.placeholder = "至少输入" + value["min_length"] + "字";
+                elem_textarea.setAttribute("data-min-length", value["min_length"]);
+                elem_tips.innerHTML = "已录入0/" + value["min_length"] + "字";
+                if (value["answer"]) {
+                    elem_textarea.innerHTML = value["answer"];
+                    elem_tips.innerHTML = "已录入" + value["answer"].length + "/" + value["min_length"] + "字";
+                }
+                elem_topic.appendChild(elem_question);
+                elem_topic.appendChild(elem_textarea);
+                elem_topic.appendChild(elem_tips);
+                survey.children[survey.children.length - 1].insertAdjacentElement("beforebegin", elem_topic);
+            })
+
+            const elems_textarea = document.getElementsByTagName("textarea");
+
+            for (let i = 0; i < elems_textarea.length; i++) {
+                elems_textarea[i].addEventListener("input", function () {
+                    document.getElementsByClassName("tips")[i].innerHTML =
+                        "已录入" + this.value.length + "/"
+                        + this.getAttribute("data-min-length") + "字";
+                })
+            }
+
+            const button_submit = document.getElementsByClassName("submit")[0];
+            button_submit.addEventListener("click", function () {
+                let submit_flag = true;
+                let answer_list = []
+                for (let i = 0; i < elems_textarea.length; i++) {
+                    let obj = elems_textarea[i];
+                    if (obj.value.length < parseInt(obj.getAttribute("data-min-length"))) {
+                        document.getElementsByClassName("tips")[i].style.color = "red";
+                        submit_flag = false;
+                    } else {
+                        document.getElementsByClassName("tips")[i].style.color = "";
+                        answer_list.push(elems_textarea[i].value);
+                    }
+                }
+                if (submit_flag) {
+                    call_ajax('saveWork', {
+                        "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                        "work_type": getQueryString("work_type"),
+                        "appoint_id": getQueryString("appoint_id"),
+                        "survey_id": survey_id,
+                        "answer_list": JSON.stringify(answer_list)
+                    })
+                }
+            })
+        }
+
+        function saveWork(res) {
+            console.log(res);
+            if (res["status"] !== "00"){
+                alert(res["msg"]);
+                return false;
+            }
+            alert("提交成功");
+            window.location.href = "/direct/trainee/appointList";
+        }
+    </script>
+{% endblock %}

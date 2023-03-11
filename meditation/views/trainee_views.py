@@ -7,10 +7,12 @@ from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
 
-from meditation.models import UserInfo, ScheduleInfo, AppointInfo
+from meditation.models import UserInfo, ScheduleInfo, AppointInfo, SurveyInfo
 from meditation.utils import utils
 from meditation.wrapper.wraps import login_required
 from meditation.bus import business
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -117,9 +119,9 @@ def trainee_appoint(request):
                 appoint_dt=appoint_date,
                 appoint_time=new_appoint_time,
                 appoint_stat=AppointInfo.AppointStat.NORMAL,
-                preview_work=[],
-                review_work=[],
-                last_upd_dt=timezone.now()
+                preview_work={},
+                review_work={},
+                last_upd_dt=timezone.now(),
             )
             context["status"] = "00"
         else:
@@ -173,26 +175,64 @@ def get_trainee_appoint_list(request):
 
 @login_required
 def get_appoint_work(request):
+    logger.info("getAppointWork")
     context = {}
     try:
         appoint_id = request.POST["appoint_id"]
         work_type = request.POST["work_type"]
         user_info = request.session["user"]
-    except KeyError:
+    except KeyError as e:
+        logger.error(e)
         context["status"] = "99"
+        context["msg"] = "无效的请求参数"
+        return JsonResponse(context)
 
-    if work_type == "01":
-        column_name = "preview_work"
-    else:
-        column_name = "review_work"
-    appoint_set = AppointInfo.objects.filter(
+    logger.info(work_type)
+    match work_type:
+        case SurveyInfo.SurveyType.PRE_CLASS:
+            column_name = "preview_work"
+        case SurveyInfo.SurveyType.END_CLASS:
+            column_name = "review_work"
+        case _:
+            return JsonResponse({
+                "status": "99",
+                "msg": "无效的请求参数",
+            })
+
+    homework = AppointInfo.objects.filter(
         pk=appoint_id
     ).values(
         column_name
-    )
+    ).first()[column_name]
+    # homework: {survey_id:#survey_id#,answer_list:[#answer1#,#answer2#]}
+    question_set = []
+    if "survey_id" not in homework:
+        result_set = SurveyInfo.objects.filter(
+            survey_type=work_type,
+            survey_stat=SurveyInfo.SurveyStat.NORMAL,
+        ).values(
+            "survey_id",
+            "question_list",
+        ).first()
+        survey_id = result_set["survey_id"]
+        question_set = result_set["question_list"]
+    else:
+        result_set = SurveyInfo.objects.filter(
+            pk=homework["survey_id"]
+        ).values(
+            "survey_id",
+            "question_list",
+        ).first()
+        survey_id = result_set["survey_id"]
+        question_set = result_set["question_list"]
+        for index in range(len(question_set)):
+            question_set[index]["answer"] = homework["answer_list"][index]
     context["status"] = "00"
-    context["data"] = utils.obj_set_to_json(appoint_set)
-    context["user_type"] = user_info.user_type
+    context["data"] = {}
+    context["data"]["work_list"] = utils.obj_set_to_json(question_set)
+    context["data"]["user_type"] = user_info.user_type
+    context["data"]["survey_id"] = survey_id
+    logger.info(context)
     return JsonResponse(context)
 
 
@@ -201,16 +241,28 @@ def save_work(request):
     context = {}
     try:
         appoint_id = request.POST["appoint_id"]
+        survey_id = request.POST["survey_id"]
         work_type = request.POST["work_type"]
-        work_text = request.POST["work_text"]
+        answer_list = request.POST["answer_list"]
     except KeyError:
         context["status"] = "99"
 
     appoint_info = AppointInfo.objects.get(pk=appoint_id)
-    if work_type == "01":
-        appoint_info.preview_work = json.loads(work_text)
-    else:
-        appoint_info.review_work = json.loads(work_text)
+    match work_type:
+        case SurveyInfo.SurveyType.PRE_CLASS:
+            appoint_info.preview_work = {
+                "survey_id": survey_id,
+                "answer_list": json.loads(answer_list),
+            }
+        case SurveyInfo.SurveyType.END_CLASS:
+            appoint_info.review_work = {
+                "survey_id": survey_id,
+                "answer_list": json.loads(answer_list),
+            }
+        case _:
+            context["status"] = "99"
+            return JsonResponse(context)
+
     appoint_info.last_upd_dt = timezone.now()
     appoint_info.save()
     context["status"] = "00"
