@@ -35,7 +35,7 @@ def get_trainee_schedule_list(request):
         'end_dt',
         'trainer',
         'trainer_nm',
-    )
+    ).order_by("-end_dt")
     context["status"] = "00"
     context["data"] = utils.obj_set_to_json(schedule_set)
     return JsonResponse(context)
