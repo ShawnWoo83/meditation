@@ -91,7 +91,9 @@
             for (let i in objs) {
                 objs[i].onclick = function () {
                     let appoint_id = objs[i].parentNode.parentNode.id;
-                    window.location.href = "/direct/trainee/preClass?appoint_id=" + appoint_id;
+                    let work_type = "11";
+                    window.location.href = "/direct/trainer/workList?appoint_id="
+                        + appoint_id + "&work_type=" + work_type;
                 }
             }
 
@@ -99,7 +101,9 @@
             for (let i in a_objs) {
                 a_objs[i].onclick = function () {
                     let appoint_id = a_objs[i].parentNode.parentNode.id;
-                    window.location.href = "/direct/trainee/afterClass?appoint_id=" + appoint_id;
+                    let work_type = "12";
+                    window.location.href = "/direct/trainer/workList?appoint_id="
+                        + appoint_id + "&work_type=" + work_type;
                 }
             }
 
