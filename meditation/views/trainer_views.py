@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def get_schedule_list(request):
     context = {}
     user_info = request.session["user"]
-    schedule_set = ScheduleInfo.objects.filter(trainer=user_info)
+    schedule_set = ScheduleInfo.objects.filter(trainer=user_info).order_by("-end_dt")
     schedule_list = utils.obj_set_to_json(schedule_set)
     context["data"] = schedule_list
     return JsonResponse(context)

@@ -23,7 +23,13 @@
                         }
 
                     } else {
-                        if ((this.id.split("|")[1] === "5") || (this.id.split("|")[1] === "13")) {
+                        const c_id = this.id;
+                        const c_day = c_id.split("|")[0];
+                        const c_hour = c_id.split("|")[1];
+                        let next_cell = c_day + "|" + (parseInt(c_hour) + 1)
+                        if ((c_hour === "5") || (c_hour === "13")) {
+                            window.alert("每节课的时长至少为1小时，请更换时间");
+                        } else if (document.getElementById(next_cell).className.indexOf("disable") >= 0) {
                             window.alert("每节课的时长至少为1小时，请更换时间");
                         } else if (document.getElementsByClassName("self").length > 0) {
                             window.alert("已有课程预约，请勿重复操作");
