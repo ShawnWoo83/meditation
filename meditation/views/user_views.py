@@ -1,3 +1,5 @@
+import logging
+
 from django.http import JsonResponse
 from meditation.models import UserInfo
 from meditation.wrapper.wraps import login_required
@@ -5,6 +7,8 @@ from django.shortcuts import render, HttpResponseRedirect
 from django.utils import timezone
 from meditation.utils import utils
 from meditation.bus import business
+
+logger = logging.getLogger(__name__)
 
 
 def login(request):
@@ -22,7 +26,7 @@ def login(request):
     login_id = request.POST['login_id']
     login_pwd = request.POST['login_pwd']
     try:
-        user_info = UserInfo.objects.get(login_id=login_id, login_pwd=login_pwd)
+        user_info: UserInfo = UserInfo.objects.get(login_id=login_id, login_pwd=login_pwd)
         if user_info.user_stat != UserInfo.UserStat.NORMAL:
             context["status"] = "99"
             match user_info.user_stat:
@@ -31,7 +35,8 @@ def login(request):
                 case UserInfo.UserStat.DISABLE:
                     context["msg"] = "用户已被禁用，无法登陆"
             return JsonResponse(context)
-        user_info.last_login_date = timezone.now()
+        user_info.last_login_dt = timezone.now()
+        logger.info(user_info.last_login_dt)
         user_info.save()
         request.session['user'] = user_info
         context["status"] = "00"
